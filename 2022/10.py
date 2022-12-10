@@ -18,3 +18,14 @@ sum_signal_strength = 0
 for i in range(20, len(timeline), 40):
     sum_signal_strength += i * timeline[i-1]  # val during the cycle is the val at the end of the previous cycle
 print(f"Sum of signal strength: {sum_signal_strength}")
+
+pixels = []
+width = 40
+for i in range(240):
+    x = timeline[i]
+    sprite_pos = [x - 1, x, x + 1]
+    pixel_val = '#' if i % width in sprite_pos else '.'
+    pixels.append(pixel_val)
+
+for i in range(0, len(pixels), width):
+    print(''.join(pixels[i:i + width]))
