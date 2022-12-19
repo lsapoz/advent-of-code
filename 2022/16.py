@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Dict, List, Set
 from dataclasses import dataclass
 from collections import defaultdict, deque
+import itertools
 import re
 
 here = Path(__file__).parent
@@ -57,11 +58,11 @@ def map_valve_distances(valve_map: Dict[str, Valve]) -> Dict[str, Dict[str, int]
 
 
 # for a set of valves and distances between those valves, determine the max steam that can be released
-def get_max_steam(valve_map: Dict[str, Valve], valve_distances: Dict[str, Dict[str, int]]):
+def get_max_steam(valve_map: Dict[str, Valve], valve_distances: Dict[str, Dict[str, int]], minutes: int, with_elephant: bool) -> int:
     
     # depth-first traversal of the tunnels
     # starting from the current_valve, with minutes remaining, steam already released, and some already open_valves
-    def traverse(current_valve: str, minutes: int, steam: int, open_valves: Set[str]):
+    def traverse(current_valve: str, minutes: int, steam: int, open_valves: Set[str]) -> int:
         # if all valves are open, we're done
         if len(open_valves) == len(valve_distances):
             return steam
@@ -79,10 +80,22 @@ def get_max_steam(valve_map: Dict[str, Valve], valve_distances: Dict[str, Dict[s
                 open_valves.remove(nv)
         return max_steam
 
-    return traverse(START_VALVE, 30, 0, set([START_VALVE]))
+    if not with_elephant:
+        return traverse(START_VALVE, minutes, 0, set([START_VALVE]))
+    
+    # if we have an elephant helping us, split the valves into every possible pair of two exclusive sets
+    # figure out the max steam released if we each take the optimal path for every pair of exclusive sets
+    max_steam = 0
+    valves_to_open = set([v for v in valve_distances.keys() if v != START_VALVE])
+    for r in range((len(valves_to_open) // 2 + 1)):
+        for combination in itertools.combinations(valves_to_open, r):
+            my_set = set(combination)
+            elephant_set = valves_to_open - my_set
+            max_steam = max(max_steam, traverse(START_VALVE, 26, 0, my_set) + traverse(START_VALVE, 26, 0, elephant_set))
+    return max_steam
 
 
 valve_map = parse()
 valve_distances = map_valve_distances(valve_map)
-max_steam = get_max_steam(valve_map, valve_distances)
-print(f"Part 1: {max_steam}")
+print(f"Part 1: {get_max_steam(valve_map, valve_distances, 30, False)}")
+print(f"Part 2: {get_max_steam(valve_map, valve_distances, 26, True)}")
