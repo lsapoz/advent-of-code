@@ -4,6 +4,7 @@ from functools import cache
 from enum import Enum
 from typing import Tuple
 import re
+import math
 
 here = Path(__file__).parent
 lines = Path(here/"19.txt").read_text().splitlines()
@@ -116,5 +117,5 @@ def get_max_geodes(blueprint: Blueprint, total_minutes: int) -> int:
 
 
 blueprints = [Blueprint(*[int(x) for x in re.findall("\d{1,}", line)]) for line in lines]
-quality_levels = sum(blueprint.id * get_max_geodes(blueprint, 24) for blueprint in blueprints)
-print(quality_levels)
+print(f"Part 1: {sum(blueprint.id * get_max_geodes(blueprint, 24) for blueprint in blueprints)}")
+print(f"Part 2: {math.prod(get_max_geodes(blueprints[i], 32) for i in range(min(len(blueprints), 3)))}")
