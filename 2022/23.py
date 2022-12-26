@@ -19,8 +19,23 @@ def parse_elves() -> list[tuple[int, int]]:
                 elves.append((i, j))
     return elves
 
-def simulate(rounds: int, elves: list[tuple[int, int]]) -> int:
-    for round in range(rounds):
+
+def get_num_empty_tiles(elves: list[tuple[int, int]]) -> int:
+    # after the rounds are complete, draw the bounding box and figure out how many empty tiles there are
+    x_coords, y_coords = zip(*elves)
+    min_x, max_x = min(x_coords), max(x_coords)
+    min_y, max_y = min(y_coords), max(y_coords)
+    all_points = set()
+    for x in range(min_x, max_x + 1):
+        for y in range(min_y, max_y + 1):
+                all_points.add((x, y))
+    return len(all_points - set(elves))
+
+
+def simulate(elves: list[tuple[int, int]], rounds: int = None) -> tuple[list[tuple[int, int]], int]:
+    round = -1
+    while round < rounds if rounds is not None else True:
+        round += 1
         proposals: dict[tuple[int, int]: int] = {}  # map each proposed direction to the index of the elf proposing it
         moves = elves.copy()  # start off each elf assuming it doesn't move
         occupied = set(elves)
@@ -47,19 +62,14 @@ def simulate(rounds: int, elves: list[tuple[int, int]]) -> int:
 
                     # we've made our proposal, so we can skip checking the other directions
                     break
-        
-        # move elves to their next positions
+
+        if elves == moves:
+            break
         elves = moves
+    return elves, round + 1
 
-    # after the rounds are complete, draw the bounding box and figure out how many empty tiles there are
-    x_coords, y_coords = zip(*elves)
-    min_x, max_x = min(x_coords), max(x_coords)
-    min_y, max_y = min(y_coords), max(y_coords)
-    all_points = set()
-    for x in range(min_x, max_x + 1):
-        for y in range(min_y, max_y + 1):
-                all_points.add((x, y))
-    return len(all_points - set(elves))
+elves, _ = simulate(parse_elves(), 10)
+print(f"Part 1: {get_num_empty_tiles(elves)}")
 
-
-print(f"Part 1: {simulate(10, parse_elves())}")
+_, num_rounds = simulate(parse_elves())
+print(f"Part 2: {num_rounds}")
