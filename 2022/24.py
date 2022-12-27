@@ -49,8 +49,8 @@ def get_blizzard(minute: int) -> tuple[int, int]:
                 blizzard_cache[-1].add((nx, ny, dir))
     return set((x, y) for x, y, _ in blizzard_cache[minute])
 
-def shortest_path(start: tuple[int, int], end: tuple[int, int]) -> int:
-    q = deque([(*start, 0)])
+def shortest_path(start: tuple[int, int], end: tuple[int, int], start_minute: int) -> int:
+    q = deque([(*start, start_minute)])
     visited = set()
     while q:
         x, y, minutes = q.popleft()
@@ -65,5 +65,10 @@ def shortest_path(start: tuple[int, int], end: tuple[int, int]) -> int:
             if 0 <= nx < M and 0 <= ny < N and (nx, ny) not in walls and (nx, ny) not in blizzard and (nx, ny, minutes + 1) not in visited:
                 visited.add((nx, ny, minutes + 1))
                 q.append((nx, ny, minutes + 1))
-        
-print(shortest_path(START, END))
+
+there = shortest_path(START, END, 0)
+print(f"Part 1: {there}")
+
+back = shortest_path(END, START, there)
+there_again = shortest_path(START, END, back)
+print(f"Part 2: {there_again}")
