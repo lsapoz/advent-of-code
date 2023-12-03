@@ -11,11 +11,17 @@ for x, line in enumerate(lines):
 
 dirs = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 part_numbers = set()
+gear_ratio_sum = 0
 for x, line in enumerate(lines):
     for y, char in enumerate(line):
         if not char.isnumeric() and char != ".":
+            adjacent_nums = set()
             for dx, dy in dirs:
                 nx, ny = x + dx, y + dy
-                if nx >= 0 and ny >= 0 and nx < len(lines) and ny < len(line) and (nx, ny) in number_positions:
-                    part_numbers.add(number_positions[(nx, ny)])
-print(sum(num[0] for num in part_numbers))
+                if (nx, ny) in number_positions:
+                    adjacent_nums.add(number_positions[(nx, ny)])
+            part_numbers.update(adjacent_nums)
+            if len(adjacent_nums) == 2:
+                gear_ratio_sum += adjacent_nums.pop()[0] * adjacent_nums.pop()[0]
+print(f"Part 1: {sum(num[0] for num in part_numbers)}")
+print(f"Part 2: {gear_ratio_sum}")
