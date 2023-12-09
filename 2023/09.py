@@ -13,8 +13,11 @@ def extrapolate(vals: list[int]):
     return vals[-1] + next_val
 
 
-total = 0
+forward_total = 0
+backward_total = 0
 for line in lines:
     history = [int(x) for x in line.split()]
-    total += extrapolate(history)
-print(f"Part 1: {total}")
+    forward_total += extrapolate(history)
+    backward_total += extrapolate(history[::-1])
+print(f"Part 1: {forward_total}")
+print(f"Part 2: {backward_total}")
