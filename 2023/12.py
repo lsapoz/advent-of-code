@@ -1,36 +1,42 @@
 from pathlib import Path
-from collections import Counter
-from itertools import combinations
+from functools import cache
 
 lines = Path(__file__).resolve().with_suffix(".txt").read_text().splitlines()
 
 
-def is_valid(arrangement: str, group_sizes: tuple[int]):
-    return tuple(len(x) for x in arrangement.replace(".", " ").strip().split()) == group_sizes
+@cache
+def get_valid_arrangements(springs: str, sizes: tuple[int, ...], curr_group_size=0):
+    if len(springs) == 0:
+        if len(sizes) == 1 and curr_group_size == sizes[0]:
+            return 1
+        if len(sizes) == 0 and curr_group_size == 0:
+            return 1
+        return 0
+
+    current_spring = springs[0]
+    remaining = springs[1:]
+    match current_spring:
+        case "?":
+            if_working = get_valid_arrangements("#" + remaining, sizes, curr_group_size)
+            if_broken = get_valid_arrangements("." + remaining, sizes, curr_group_size)
+            return if_working + if_broken
+        case "#":
+            if len(sizes) > 0 and curr_group_size < sizes[0]:
+                return get_valid_arrangements(remaining, sizes, curr_group_size + 1)
+        case ".":
+            if curr_group_size == 0:
+                return get_valid_arrangements(remaining, sizes, 0)
+            if curr_group_size == sizes[0]:
+                return get_valid_arrangements(remaining, sizes[1:], 0)
+    return 0
 
 
-def get_valid_arrangements(record: str):
-    springs, group_sizes = record.split()
-    group_sizes = tuple([int(x) for x in group_sizes.split(",")])
-    total_springs = sum(group_sizes)
-    num_springs_missing = total_springs - Counter(springs)["#"]
-
-    missing_positions = [i for i, char in enumerate(springs) if char == "?"]
-    pos_combinations = list(combinations(missing_positions, num_springs_missing))
-
-    num_valid = 0
-    for comb in pos_combinations:
-        res = list(springs)
-        for pos in comb:
-            res[pos] = "#"
-        arrangement = "".join(res).replace("?", ".")
-        if is_valid(arrangement, group_sizes):
-            num_valid += 1
-
-    return num_valid
-
-
-total = 0
+part1 = 0
+part2 = 0
 for line in lines:
-    total += get_valid_arrangements(line)
-print(total)
+    springs, group_sizes = line.split()
+    sizes = tuple(map(int, group_sizes.split(",")))
+    part1 += get_valid_arrangements(springs, tuple(map(int, group_sizes.split(","))))
+    part2 += get_valid_arrangements("?".join([springs] * 5), tuple(map(int, (",".join([group_sizes] * 5)).split(","))))
+print(f"Part 1: {part1}")
+print(f"Part 2: {part2}")
