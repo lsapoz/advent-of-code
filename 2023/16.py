@@ -7,7 +7,7 @@ grid = tuple(tuple(x for x in line) for line in lines)
 CARDINAL_DIR_MAP = {"N": (-1, 0), "S": (1, 0), "E": (0, 1), "W": (0, -1)}
 
 
-def bfs():
+def bfs(start: tuple[int, int, str]):
     def _is_point_valid(_x, _y):
         return 0 <= _x < len(grid) and 0 <= _y < len(grid[0])
 
@@ -29,7 +29,7 @@ def bfs():
                 return "NS"
 
     visited = set()
-    q = deque([(0, 0, "E")])
+    q = deque([start])
     while q:
         x, y, dir = q.popleft()
         visited.add((x, y, dir))
@@ -43,4 +43,13 @@ def bfs():
     return len(set((x, y) for (x, y, _) in visited))
 
 
-print(bfs())
+print(f"Part 1: {bfs((0, 0, 'E'))}")
+
+most_tiles = 0
+for x in range(len(grid)):
+    most_tiles = max(most_tiles, bfs((x, 0, "E")))
+    most_tiles = max(most_tiles, bfs((x, len(grid[0]) - 1, "W")))
+for y in range(len(grid[0])):
+    most_tiles = max(most_tiles, bfs((0, y, "S")))
+    most_tiles = max(most_tiles, bfs((len(grid) - 1, y, "N")))
+print(f"Part 2: {most_tiles}")
