@@ -8,14 +8,23 @@ M, N = len(grid), len(grid[0])
 CARDINAL_DIR_MAP = {"N": (-1, 0), "S": (1, 0), "E": (0, 1), "W": (0, -1)}
 
 
-def dijkstra():
+def dijkstra(ultra=False):
     def _is_point_valid(_x, _y):
         return 0 <= _x < M and 0 <= _y < N
 
     def _next_dirs(_dir, _moves):
         dirs = []
-        if _moves < 3 and _dir in CARDINAL_DIR_MAP.keys():
+
+        # can move in the same direction a certain number of times
+        max_moves = 10 if ultra else 3
+        if _moves < max_moves and _dir in CARDINAL_DIR_MAP.keys():
             dirs.append(_dir)
+
+        # ultra crucible requires 4 consecutive moves at a minimum
+        if ultra and _moves < 4 and _dir in CARDINAL_DIR_MAP.keys():
+            return dirs
+
+        # can only turn 90 degrees (unless it's the starting block)
         if _dir in "NS":
             dirs.extend(["E", "W"])
         elif _dir in "EW":
@@ -44,4 +53,5 @@ def dijkstra():
                 heapq.heappush(heap, (cost + grid[nx][ny], nx, ny, next_dir, 1 if next_dir != curr_dir else moves + 1))
 
 
-print(dijkstra())
+print(f"Part 1: {dijkstra()}")
+print(f"Part 2: {dijkstra(ultra=True)}")
