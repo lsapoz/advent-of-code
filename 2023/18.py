@@ -1,47 +1,48 @@
 from pathlib import Path
-from collections import deque
-from statistics import mean
 
 lines = Path(__file__).resolve().with_suffix(".txt").read_text().splitlines()
 
+NUM_TO_DIR = {"0": "R", "1": "D", "2": "L", "3": "U"}
 DIR_MAP = {"U": (-1, 0), "D": (1, 0), "R": (0, 1), "L": (0, -1)}
 
-# map out the edges
-x, y = 0, 0
-points = set([(x, y)])
-for idx, line in enumerate(lines):
-    dir, steps, color = line.split()
-    for i in range(int(steps)):
+
+def calc_lava(part2=False):
+    def _part_1_parser(_line: str):
+        dir, steps, _ = _line.split()
+        return (dir, int(steps))
+
+    def _part_2_parser(_line: str):
+        _, _, color = _line.split()
+        dir = NUM_TO_DIR[color[-2]]
+        steps = int(color[2:7], 16)
+        return (dir, steps)
+
+    x, y = 0, 0
+    num_perimeter_points = 0
+    polygon_area = 0
+    parser = _part_2_parser if part2 else _part_1_parser
+    for line in lines:
+        prev_point = (x, y)
+        dir, steps = parser(line)
+        num_perimeter_points += steps
+
         dx, dy = DIR_MAP[dir]
-        x += dx
-        y += dy
-        points.add((x, y))
+        x += dx * steps
+        y += dy * steps
 
-total = len(points)
+        # https://en.wikipedia.org/wiki/Shoelace_formula
+        x1, y1 = prev_point
+        x2, y2 = x, y
+        polygon_area += (x1 * y2) - (x2 * y1)
+    polygon_area = abs(polygon_area) // 2
 
-# convert to a grid
-x_values, y_values = zip(*points)
-min_x, max_x = min(x_values), max(x_values)
-min_y, max_y = min(y_values), max(y_values)
-offset_x, offset_y = -1 * min_x, -1 * min_y
-M, N = max_x - min_x + 1, max_y - min_y + 1
+    # https://en.wikipedia.org/wiki/Pick%27s_theorem
+    # polygon_area = internal_area + (num_perimeter_points / 2) - 1
+    # => internal_area = polygon_area - (num_perimeter_points / 2) + 1
+    internal_area = polygon_area - (num_perimeter_points // 2) + 1
 
-grid = [[" " for _ in range(N)] for _ in range(M)]
-for i in range(min_x, max_x + 1):
-    for j in range(min_y, max_y + 1):
-        x, y = i + offset_x, j + offset_y
-        grid[x][y] = "#" if (i, j) in points else "."
+    return internal_area + num_perimeter_points
 
-# flood fill the grid
-# would be nice to figure out starting coordinates programmatically...
-q = deque([(317, 1)])
-while q:
-    x, y = q.popleft()
-    for dx, dy in DIR_MAP.values():
-        nx, ny = x + dx, y + dy
-        if nx >= 0 and nx < M and ny >= 0 and ny < N and grid[nx][ny] == ".":
-            grid[nx][ny] = "#"
-            q.append((nx, ny))
-            total += 1
 
-print(total)
+print(f"Part 1: {calc_lava()}")
+print(f"Part 2: {calc_lava(True)}")
