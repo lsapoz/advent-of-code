@@ -1,4 +1,5 @@
 from pathlib import Path
+import math
 import re
 
 lines = Path(__file__).resolve().with_suffix(".txt").read_text().splitlines()
@@ -34,4 +35,41 @@ while q:
                 case _:
                     q.append((dest, rating))
             break
-print(total)
+print(f"Part 1: {total}")
+
+
+def split_range(rating: tuple[range, range, range, range], condition: str):
+    if condition == "True":
+        return (rating, None)
+
+    category = condition[0]
+    expr = condition[1]
+    val = int(condition[2:])
+    if expr == ">":
+        val += 1
+
+    left, right = list(rating), list(rating)
+    idx = "xmas".index(category)
+    left[idx] = range(left[idx][0], val)
+    right[idx] = range(val, right[idx][-1] + 1)
+
+    l, r = tuple(left), tuple(right)
+    return (l, r) if expr == "<" else (r, l)
+
+
+total = 0
+q = [("in", tuple(range(1, 4001) for _ in range(4)))]
+while q:
+    workflow_name, rating = q.pop()
+    workflow = workflows[workflow_name]
+    for condition, dest in workflow.items():
+        passing, failing = split_range(rating, condition)
+        match dest:
+            case "A":
+                total += math.prod(len(r) for r in passing)
+            case "R":
+                pass
+            case _:
+                q.append((dest, passing))
+        rating = failing
+print(f"Part 2: {total}")
