@@ -1,5 +1,6 @@
 from pathlib import Path
-from collections import defaultdict
+from collections import defaultdict, deque
+from copy import deepcopy
 
 lines = Path(__file__).resolve().with_suffix(".txt").read_text().splitlines()
 
@@ -66,21 +67,34 @@ for k in range(1, O):
 
 # for each brick, check if there is a brick directly above it
 # if there is, it supports that brick
+supports = defaultdict(set)  # brick_num: [bricks it supports]
 supported_by = defaultdict(set)  # brick_num: [bricks it is supported by]
 for brick_num, points in bricks.items():
     for x, y, z in points:
         above = grid[x][y][z + 1]
         if above >= 0 and above != brick_num:
+            supports[brick_num].add(above)
             supported_by[above].add(brick_num)
 
-# assume we can disintegrate all bricks by default
-# if any brick is supported by just one brick
-# we can't disintegrate that brick
-can_disintegrate = set(bricks.keys())
+# if any brick is supported by just one brick, the support brick is critical
+critical_bricks = set()
 for support_bricks in supported_by.values():
     if len(support_bricks) == 1:
-        critical_brick = support_bricks.pop()
-        if critical_brick in can_disintegrate:
-            can_disintegrate.remove(critical_brick)
+        critical_bricks.update(support_bricks)
+print(f"Part 1: {len(bricks) - len(critical_bricks)}")
 
-print(f"Part 1: {len(can_disintegrate)}")
+total = 0
+for brick_num in critical_bricks:
+    num_fall = 0
+    sup_by = deepcopy(supported_by)
+    q = deque([brick_num])
+    while q:
+        curr_brick = q.popleft()
+        for supported_brick in supports[curr_brick]:
+            sup_by[supported_brick].remove(curr_brick)
+        for supported_brick in supports[curr_brick]:
+            if len(sup_by[supported_brick]) == 0:
+                q.append(supported_brick)
+                num_fall += 1
+    total += num_fall
+print(f"Part 2: {total}")
