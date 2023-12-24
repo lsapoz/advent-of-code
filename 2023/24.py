@@ -1,4 +1,5 @@
 from pathlib import Path
+import z3
 
 lines = Path(__file__).resolve().with_suffix(".txt").read_text().splitlines()
 
@@ -37,4 +38,17 @@ for i in range(len(hailstones)):
         y = (m2 * x) + b2
         if MIN <= x <= MAX and MIN <= y <= MAX and in_future(h1, x, y) and in_future(h2, x, y):
             total += 1
-print(total)
+print(f"Part 1: {total}")
+
+s = z3.Solver()
+x, y, z, dx, dy, dz = (z3.Int(var) for var in ["x", "y", "z", "dx", "dy", "dz"])
+for idx, h in enumerate(hailstones):
+    hx, hy, hz, hdx, hdy, hdz = h
+    t = z3.Int(f"t{idx}")
+    s.add(t >= 0)
+    s.add(x + dx * t == hx + hdx * t)
+    s.add(y + dy * t == hy + hdy * t)
+    s.add(z + dz * t == hz + hdz * t)
+s.check()
+m = s.model()
+print(f"Part 2: {m[x].as_long() + m[y].as_long() + m[z].as_long()}")
