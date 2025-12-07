@@ -1,5 +1,6 @@
 from pathlib import Path
 from collections import deque
+from functools import cache
 
 lines = Path(__file__).resolve().with_suffix(".txt").read_text().splitlines()
 grid = [[x for x in line] for line in lines]
@@ -32,4 +33,21 @@ def bfs():
     return num_splits
 
 
+@cache
+def dfs(x: int, y: int):
+    paths = 0
+
+    if x == M:
+        return 1
+
+    if grid[x][y] == "^":
+        paths += dfs(x + 1, y - 1)
+        paths += dfs(x + 1, y + 1)
+    else:
+        paths += dfs(x + 1, y)
+
+    return paths
+
+
 print(f"Part 1: {bfs()}")
+print(f"Part 2: {dfs(*start)}")
