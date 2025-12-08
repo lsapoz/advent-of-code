@@ -15,12 +15,14 @@ for i in range(len(boxes)):
 box_to_circuit = {}
 circuit_to_boxes = defaultdict(set)
 circuit_num = 1
-for _ in range(1000):
+num_connections = 0
+while heap:
     _, b1, b2 = heappop(heap)
     c1, c2 = box_to_circuit.get(b1), box_to_circuit.get(b2)
 
     # if both boxes are already in circuits, merge them (or do nothing if it's the same circuit)
     if c1 and c2:
+        c = c1
         if c1 != c2:
             c2_boxes = circuit_to_boxes.pop(c2)
             circuit_to_boxes[c1].update(c2_boxes)
@@ -40,7 +42,13 @@ for _ in range(1000):
         box_to_circuit[b1], box_to_circuit[b2] = c, c
         circuit_num += 1
 
-counter = Counter()
-for key, value in circuit_to_boxes.items():
-    counter[key] = len(value)
-print(f"Part 1: {prod(x[1] for x in counter.most_common(3))}")
+    num_connections += 1
+    if num_connections == 1000:
+        counter = Counter()
+        for key, value in circuit_to_boxes.items():
+            counter[key] = len(value)
+        print(f"Part 1: {prod(x[1] for x in counter.most_common(3))}")
+
+    if len(circuit_to_boxes[c]) == len(boxes):
+        print(f"Part 2: {b1[0] * b2[0]}")
+        break
